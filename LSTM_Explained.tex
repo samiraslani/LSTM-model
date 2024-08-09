@@ -1,0 +1,197 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+
+\title{Long Short-Term Memory (LSTM) Networks: A Mathematical Overview}
+\author{Shirin Amiraslani}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Long Short-Term Memory (LSTM) networks are a type of recurrent neural network (RNN) that are capable of learning long-term dependencies. This document provides an introduction to the key calculations and equations that define LSTM networks, including the gate mechanisms, cell state, and hidden state updates.
+\end{abstract}
+
+\section{Introduction}
+LSTM networks are designed to avoid the long-term dependency problem, which is a common issue in traditional RNNs. The LSTM architecture introduces a memory cell and gating mechanisms that control the flow of information, allowing the network to retain important information over extended time intervals.
+
+\section{LSTM Cell Structure}
+An LSTM cell is composed of several key components:
+\begin{itemize}
+    \item \textbf{Cell State} (\(C_t\)): The memory of the network.
+    \item \textbf{Hidden State} (\(h_t\)): The output of the LSTM cell.
+    \item \textbf{Forget Gate} (\(f_t\)): Determines what information to discard from the cell state.
+    \item \textbf{Input Gate} (\(i_t\)): Decides which new information to store in the cell state.
+    \item \textbf{Candidate Memory Cell} (\(\tilde{C}_t\)): The new memory content to be added.
+    \item \textbf{Output Gate} (\(o_t\)): Controls the output of the cell.
+\end{itemize}
+
+\section{Equations of LSTM}
+The LSTM cell is governed by the following equations:
+
+\subsection{Forget Gate}
+The forget gate determines which part of the previous cell state \(C_{t-1}\) should be forgotten:
+\begin{equation}
+    f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)
+\end{equation}
+where \(W_f\) and \(b_f\) are the weight matrix and bias for the forget gate, respectively, \(h_{t-1}\) is the previous hidden state, and \(x_t\) is the input at the current time step.
+
+\subsection{Input Gate}
+The input gate controls which parts of the new input \(x_t\) should be used to update the cell state:
+\begin{equation}
+    i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i)
+\end{equation}
+where \(W_i\) and \(b_i\) are the weight matrix and bias for the input gate, respectively.
+
+\subsection{Candidate Memory Cell}
+The candidate memory cell creates a new memory content that could be added to the cell state:
+\begin{equation}
+    \tilde{C}_t = \tanh(W_C \cdot [h_{t-1}, x_t] + b_C)
+\end{equation}
+where \(W_C\) and \(b_C\) are the weight matrix and bias for the candidate memory cell.
+
+\subsection{Cell State Update}
+The cell state is updated by combining the forget gate, the previous cell state, the input gate, and the candidate memory cell:
+\begin{equation}
+    C_t = f_t \cdot C_{t-1} + i_t \cdot \tilde{C}_t
+\end{equation}
+
+\subsection{Output Gate}
+The output gate controls the hidden state of the LSTM, which is also the output of the cell:
+\begin{equation}
+    o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o)
+\end{equation}
+where \(W_o\) and \(b_o\) are the weight matrix and bias for the output gate.
+
+\subsection{Hidden State}
+The hidden state (or the output of the LSTM cell) is calculated as:
+\begin{equation}
+    h_t = o_t \cdot \tanh(C_t)
+\end{equation}
+
+\subsection{Prediction}
+Finally, prediction is based on the last hidden state calculated: 
+\begin{equation}
+	y_t  = \sigma (W_y \cdot h_t + b_y)
+\end{equation}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{LSTM}
+	\caption{https://medium.com/@ottaviocalzone/an-intuitive-explanation-of-lstm-a035eb6ab42c}
+\end{figure}
+
+
+\section{Back Propagation Through Time}
+Training LSTM networks involves computing gradients of the loss function with respect to the parameters. The gradients are calculated using backpropagation through time (BPTT), which is an extension of the standard backpropagation algorithm for recurrent neural networks.
+
+\section{Key LSTM Equations}
+Once again, let us re-write the key equations governing the forward pass of the LSTM cell:
+\begin{align}
+	f_t &= \sigma(W_f \cdot [h_{t-1}, x_t] + b_f) \\
+	i_t &= \sigma(W_i \cdot [h_{t-1}, x_t] + b_i) \\
+	\tilde{C}_t &= \tanh(W_C \cdot [h_{t-1}, x_t] + b_C) \\
+	C_t &= f_t \cdot C_{t-1} + i_t \cdot \tilde{C}_t \\
+	o_t &= \sigma(W_o \cdot [h_{t-1}, x_t] + b_o) \\
+	h_t &= o_t \cdot \tanh(C_t)
+\end{align}
+
+\section{Loss Function}
+Let \(L\) denote the loss function. The goal of training is to minimize \(L\) by updating the parameters \(W_f\), \(W_i\), \(W_C\), \(W_o\), \(b_f\), \(b_i\), \(b_C\), and \(b_o\) using gradient descent.
+
+\section{Gradients for Backpropagation}
+The gradients with respect to the loss function are computed as follows:
+
+\subsection{Gradient with respect to the Hidden State}
+\begin{equation}
+	\frac{\partial L}{\partial h_t} = \frac{\partial L}{\partial h_{t+1}} \cdot \frac{\partial h_{t+1}}{\partial h_t} + \frac{\partial L}{\partial y_t} \cdot \frac{\partial y_t}{\partial h_t}
+\end{equation}
+where \(y_t\) is the output of the network at time step \(t\).
+
+\subsection{Gradients with respect to the Previous Hidden State}
+\begin{equation}
+\begin{aligned}
+	    \frac{\partial L}{\partial h_{t-1}} = & \, \frac{\partial L}{\partial o_t} \cdot o_t (1-o_t) W_{o,a} \\
+	&+ \frac{\partial L}{\partial i_t} \cdot i_t (1-i_t) W_{i,a} \\
+	&+ \frac{\partial L}{\partial f_t} \cdot  f_t (1-f_t) W_{f,a} \\
+	&+ \frac{\partial L}{\partial \tilde{C}_t} \cdot (1-\tanh^2(\tilde{C_t})) \cdot W_{C,a}
+\end{aligned}
+\end{equation}
+
+
+
+\subsection{Gradient with respect to the Output Gate}
+\begin{equation}
+	\frac{\partial L}{\partial o_t} = \frac{\partial L}{\partial h_t} \cdot \tanh(C_t)
+\end{equation}
+
+\subsection{Gradient with respect to the Cell State}
+\begin{equation}
+	\frac{\partial L}{\partial C_t} = \frac{\partial L}{\partial h_t} \cdot o_t \cdot \frac{\partial \tanh(C_t)}{\partial C_t} + \frac{\partial L}{\partial C_{t+1}} \cdot f_{t+1}
+\end{equation}
+\begin{equation}
+	= \frac{\partial L}{\partial h_t} \cdot o_t \cdot (1 - tanh^2 (C_t)) + \frac{\partial L}{\partial C_{t+1}} \cdot f_{t+1}
+\end{equation}
+
+\subsection{Gradient with respect to the Previous Cell State}
+\begin{equation}
+	\frac{\partial L}{\partial C_{t-1}} = \frac{\partial L}{\partial C_t} \cdot f_t 
+\end{equation}
+
+
+
+\subsection{Gradient with respect to the Forget Gate}
+\begin{equation}
+	\frac{\partial L}{\partial f_t} = \frac{\partial L}{\partial C_t} \cdot C_{t-1}
+\end{equation}
+
+\subsection{Gradient with respect to the Input Gate}
+\begin{equation}
+	\frac{\partial L}{\partial i_t} = \frac{\partial L}{\partial C_t} \cdot \tilde{C}_t
+\end{equation}
+
+\subsection{Gradient with respect to the Candidate Cell State}
+\begin{equation}
+	\frac{\partial L}{\partial \tilde{C}_t} = \frac{\partial L}{\partial C_t} \cdot i_t
+\end{equation}
+
+\section{Gradients with respect to Parameters}
+Finally, the gradients with respect to the LSTM parameters are derived as follows:
+
+\subsection{Weights for the Forget Gate}
+\begin{equation}
+	\frac{\partial L}{\partial W_f} = \sum_{t=1}^{T} \frac{\partial L}{\partial c_t} \cdot C_{t-1} \cdot f_t \cdot (1-f_t) \cdot [h_{t-1},x_t]
+\end{equation}
+
+\subsection{Weights for the Input Gate}
+\begin{equation}
+	\frac{\partial L}{\partial W_i} = \sum_{t=1}^{T} \frac{\partial L}{\partial c_t} \cdot \tilde{C_t} \cdot (i_t)\cdot  (1-i_t) \cdot [h_{t-1},x_t]
+\end{equation}
+
+\subsection{Weights for the Candidate Cell State}
+\begin{equation}
+	\frac{\partial L}{\partial W_C} = \sum_{t=1}^{T} \frac{\partial L}{\partial \tilde{C}_t} \cdot (1-tanh^2(\tilde{C_t})) \cdot [h_{t-1},x_t]
+\end{equation}
+
+\subsection{Weights for the Output Gate}
+\begin{equation}
+	\frac{\partial L}{\partial W_o} = \sum_{t=1}^{T} \frac{\partial L}{\partial o_t} \cdot o_t \cdot (1-o_t)\cdot  [h_{t-1},x_t]
+\end{equation}
+
+\section{Bias Gradients}
+The gradients with respect to the biases \(b_f\), \(b_i\), \(b_C\), and \(b_o\) are derived similarly by summing the respective gradients over all time steps:
+\begin{align}
+	\frac{\partial L}{\partial b_f} &= \sum_{t=1}^{T} \frac{\partial L}{\partial f_t} \cdot f_t \cdot (1-f_t)\\
+	\frac{\partial L}{\partial b_i} &= \sum_{t=1}^{T} \frac{\partial L}{\partial i_t} \cdot i_t \cdot (1-i_t) \\
+	\frac{\partial L}{\partial b_C} &= \sum_{t=1}^{T} \frac{\partial L}{\partial \tilde{C}_t} \cdot (1 - tanh^2 (\tilde{C_t}))\\
+	\frac{\partial L}{\partial b_o} &= \sum_{t=1}^{T} \frac{\partial L}{\partial o_t} \cdot o_t \cdot (1-o_t)
+\end{align}
+
+\section{Conclusion}
+The LSTM architecture effectively mitigates the vanishing gradient problem encountered in standard RNNs, making it well-suited for tasks involving long-term dependencies. The gating mechanisms provide control over the flow of information, enabling the network to maintain relevant information over extended sequences. The gradients derived in this document are essential for updating the LSTM parameters during training. By computing these gradients, we can apply gradient descent (or its variants) to minimize the loss function and train the LSTM network effectively.
+
+
+\end{document}
